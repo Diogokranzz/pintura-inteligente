@@ -21,10 +21,26 @@ const ArtGenerator = () => {
   const [loading, setLoading] = useState(false);
   const [arteGerada, setArteGerada] = useState<string | null>(null);
   const [historico, setHistorico] = useState<Array<{ descricao: string; url: string }>>([]);
+  const [apiKey, setApiKey] = useState("");
+  const [apiKeyConfirmed, setApiKeyConfirmed] = useState(false);
+
+  const confirmarApiKey = () => {
+    if (!apiKey.trim()) {
+      toast.error("Por favor, insira sua chave API do Runware");
+      return;
+    }
+    setApiKeyConfirmed(true);
+    toast.success("Chave API configurada com sucesso!");
+  };
 
   const gerarArte = async () => {
     if (!descricao.trim()) {
       toast.error("Por favor, insira uma descrição para a arte");
+      return;
+    }
+
+    if (!apiKeyConfirmed) {
+      toast.error("Por favor, configure sua chave API primeiro");
       return;
     }
 
@@ -38,7 +54,7 @@ const ArtGenerator = () => {
         CFGScale: 1,
       };
 
-      const runwareService = new RunwareService("INSIRA_SUA_API_KEY"); // Temporário - será substituído por input seguro
+      const runwareService = new RunwareService(apiKey);
       const resultado = await runwareService.generateImage(params);
 
       setArteGerada(resultado.imageURL);
@@ -46,7 +62,7 @@ const ArtGenerator = () => {
       toast.success("Arte gerada com sucesso!");
     } catch (error) {
       console.error("Erro ao gerar arte:", error);
-      toast.error("Erro ao gerar a arte. Por favor, tente novamente.");
+      toast.error("Erro ao gerar a arte. Por favor, verifique sua chave API e tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -62,47 +78,71 @@ const ArtGenerator = () => {
           </p>
         </div>
 
-        <Card className="p-6 glass-morphism space-y-4">
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Descreva sua arte
-              </label>
-              <Input
-                placeholder="Ex: Um campo de girassóis ao pôr do sol..."
-                value={descricao}
-                onChange={(e) => setDescricao(e.target.value)}
+        {!apiKeyConfirmed && (
+          <Card className="p-6 glass-morphism space-y-4">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Chave API do Runware
+                </label>
+                <Input
+                  type="password"
+                  placeholder="Insira sua chave API..."
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              <Button onClick={confirmarApiKey} className="w-full">
+                Confirmar Chave API
+              </Button>
+            </div>
+          </Card>
+        )}
+
+        {apiKeyConfirmed && (
+          <Card className="p-6 glass-morphism space-y-4">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Descreva sua arte
+                </label>
+                <Input
+                  placeholder="Ex: Um campo de girassóis ao pôr do sol..."
+                  value={descricao}
+                  onChange={(e) => setDescricao(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Estilo artístico
+                </label>
+                <Select value={estilo} onValueChange={setEstilo}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um estilo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {estilosArtisticos.map((estilo) => (
+                      <SelectItem key={estilo.id} value={estilo.id}>
+                        {estilo.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Button
+                onClick={gerarArte}
+                disabled={loading}
                 className="w-full"
-              />
+              >
+                {loading ? "Gerando..." : "Gerar Arte"}
+              </Button>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Estilo artístico
-              </label>
-              <Select value={estilo} onValueChange={setEstilo}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um estilo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {estilosArtisticos.map((estilo) => (
-                    <SelectItem key={estilo.id} value={estilo.id}>
-                      {estilo.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Button
-              onClick={gerarArte}
-              disabled={loading}
-              className="w-full"
-            >
-              {loading ? "Gerando..." : "Gerar Arte"}
-            </Button>
-          </div>
-        </Card>
+          </Card>
+        )}
 
         {arteGerada && (
           <div className="art-container">
