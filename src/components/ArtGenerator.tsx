@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { RunwareService, GenerateImageParams } from "@/lib/runware";
-import { Download, RefreshCw, Search } from "lucide-react";
+import { Download, RefreshCw, Search, Trash2 } from "lucide-react";
 
 const estilosArtisticos = [
   { id: "realista", nome: "Realista" },
@@ -36,6 +36,11 @@ const ArtGenerator = () => {
     }
     setApiKeyConfirmed(true);
     toast.success("Chave API configurada com sucesso!");
+  };
+
+  const limparHistorico = () => {
+    setHistorico([]);
+    toast.success("Histórico de artes limpo com sucesso!");
   };
 
   const gerarArte = async () => {
@@ -78,7 +83,7 @@ const ArtGenerator = () => {
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="text-center space-y-4">
           <h1 className="text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600">
-            Gerador de Arte Autônoma
+            Ateliê Digital
           </h1>
           <p className="text-lg text-muted-foreground">
             Transforme suas ideias em obras de arte únicas usando inteligência artificial
@@ -113,14 +118,14 @@ const ArtGenerator = () => {
                 onClick={() => setActiveTab('gerar')}
                 className={`${activeTab === 'gerar' ? 'bg-gradient-to-r from-purple-600 to-pink-600' : ''}`}
               >
-                Gerar Nova Arte
+                Criar Nova Arte
               </Button>
               <Button
                 variant={activeTab === 'historico' ? 'default' : 'outline'}
                 onClick={() => setActiveTab('historico')}
                 className={`${activeTab === 'historico' ? 'bg-gradient-to-r from-purple-600 to-pink-600' : ''}`}
               >
-                Histórico de Criações
+                Galeria de Criações
               </Button>
             </div>
 
@@ -129,7 +134,7 @@ const ArtGenerator = () => {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">
-                      Descreva sua arte
+                      Descreva sua obra de arte
                     </label>
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
@@ -168,10 +173,10 @@ const ArtGenerator = () => {
                     {loading ? (
                       <span className="flex items-center">
                         <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                        Gerando...
+                        Criando sua arte...
                       </span>
                     ) : (
-                      "Gerar Arte"
+                      "Criar Arte"
                     )}
                   </Button>
                 </div>
@@ -205,42 +210,61 @@ const ArtGenerator = () => {
               </Card>
             )}
 
-            {activeTab === 'historico' && historico.length > 0 && (
+            {activeTab === 'historico' && (
               <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {historico.map((item, index) => (
-                    <Card key={index} className="p-4 hover:shadow-lg transition-shadow border border-purple-200 dark:border-purple-900">
-                      <img
-                        src={item.url}
-                        alt={item.descricao}
-                        className="w-full h-48 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                        onClick={() => window.open(item.url, '_blank')}
-                      />
-                      <div className="mt-4 space-y-2">
-                        <p className="font-medium text-sm text-purple-600 dark:text-purple-400">
-                          Estilo: {estilosArtisticos.find(e => e.id === item.estilo)?.nome}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {item.descricao}
-                        </p>
-                        <Button
-                          onClick={() => {
-                            const link = document.createElement('a');
-                            link.href = item.url;
-                            link.download = `arte-${index + 1}.webp`;
-                            link.click();
-                          }}
-                          variant="outline"
-                          size="sm"
-                          className="w-full mt-2"
-                        >
-                          <Download className="mr-2 h-4 w-4" />
-                          Baixar
-                        </Button>
-                      </div>
-                    </Card>
-                  ))}
+                <div className="flex justify-end mb-4">
+                  {historico.length > 0 && (
+                    <Button
+                      onClick={limparHistorico}
+                      variant="outline"
+                      className="hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Limpar Histórico
+                    </Button>
+                  )}
                 </div>
+                
+                {historico.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {historico.map((item, index) => (
+                      <Card key={index} className="p-4 hover:shadow-lg transition-shadow border border-purple-200 dark:border-purple-900">
+                        <img
+                          src={item.url}
+                          alt={item.descricao}
+                          className="w-full h-48 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                          onClick={() => window.open(item.url, '_blank')}
+                        />
+                        <div className="mt-4 space-y-2">
+                          <p className="font-medium text-sm text-purple-600 dark:text-purple-400">
+                            Estilo: {estilosArtisticos.find(e => e.id === item.estilo)?.nome}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {item.descricao}
+                          </p>
+                          <Button
+                            onClick={() => {
+                              const link = document.createElement('a');
+                              link.href = item.url;
+                              link.download = `arte-${index + 1}.webp`;
+                              link.click();
+                            }}
+                            variant="outline"
+                            size="sm"
+                            className="w-full mt-2"
+                          >
+                            <Download className="mr-2 h-4 w-4" />
+                            Baixar
+                          </Button>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p>Sua galeria está vazia. Comece a criar suas obras de arte!</p>
+                  </div>
+                )}
               </div>
             )}
           </>
